@@ -41,6 +41,11 @@
    Slides authored at 1920×1080, scaled as one stage.
    =========================================================== */
 html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg,#000);}
+.chapter-nav{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:1001;display:flex;align-items:center;gap:4px;padding:6px;border:1px solid var(--faint);background:rgba(240,235,222,.92);backdrop-filter:blur(10px);box-shadow:0 4px 16px rgba(31,43,224,.08);}
+.chapter-nav a{display:inline-flex;align-items:center;gap:8px;padding:8px 11px;color:var(--ink);font-family:var(--font-body);font-size:14px;line-height:1;white-space:nowrap;text-decoration:none;transition:background .2s var(--ease),color .2s var(--ease);}
+.chapter-nav a span{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);}
+.chapter-nav a:hover,.chapter-nav a.active{background:var(--ink);color:var(--paper);}
+.chapter-nav a:hover span,.chapter-nav a.active span{color:var(--paper);}
 .deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg,#000);}
 .deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--paper);}
 .slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;background:var(--slide-bg,#fff);}
@@ -57,6 +62,22 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.2s!important;}
+}
+@media (max-width:1100px){
+  .chapter-nav{max-width:calc(100vw - 28px);overflow-x:auto;justify-content:flex-start;scrollbar-width:none;}
+  .chapter-nav::-webkit-scrollbar{display:none;}
+  .chapter-nav a{font-size:13px;padding:8px 9px;}
+}
+@media (max-width:640px){
+  .chapter-nav{top:10px;max-width:calc(100vw - 20px);width:max-content;}
+  .chapter-nav a{font-size:12px;padding:8px 9px;gap:5px;}
+  .chapter-nav a span{font-size:10px;}
+  .chrome .brand.r,.chrome .nav{display:none;}
+  .chrome .brand{top:18px;left:18px;font-size:10px;letter-spacing:.06em;}
+  .chrome .pageno{right:18px;bottom:24px;font-size:11px;}
+  .chrome .hair{left:18px;right:18px;}
+  .chrome .hair.top{top:62px;}
+  .chrome .hair.bot{bottom:16px;}
 }
 
 /* ===========================================================
@@ -223,6 +244,17 @@ sub{font-size:.62em;vertical-align:-.25em;font-style:italic;}
 </style>
 </head>
 <body>
+<nav class="chapter-nav" id="chapterNav" aria-label="章节导航">
+  <a href="#quadratics" data-topic="Quadratics"><span>01</span>Quadratics</a>
+  <a href="#function" data-topic="Function"><span>02</span>Function</a>
+  <a href="#binomial" data-topic="Binomial Expansion"><span>03</span>Binomial Expansion</a>
+  <a href="#series" data-topic="Series"><span>04</span>Series</a>
+  <a href="#coordinate" data-topic="Coordinate Geometry"><span>05</span>Coordinate Geometry</a>
+  <a href="#circular" data-topic="Circular Measure"><span>06</span>Circular Measure</a>
+  <a href="#trigonometry" data-topic="Trigonometry"><span>07</span>Trigonometry</a>
+  <a href="#differentiation" data-topic="Differentiation"><span>08</span>Differentiation</a>
+  <a href="#integration" data-topic="Integration"><span>09</span>Integration</a>
+</nav>
 <div class="deck-viewport">
 <main class="deck-stage" id="deckStage" style="transform: translate(9.33333px, 0px) scale(0.919444);">
 
@@ -955,6 +987,26 @@ class Deck{
   }
 }
 const deck=new Deck();
+
+const chapterLinks=[...document.querySelectorAll('.chapter-nav a')];
+const chapterNames=chapterLinks.map(link=>link.dataset.topic);
+function updateChapterNav(){
+  const slide=deck.slides[deck.i];
+  const title=slide?.querySelector('.topbar h2')?.textContent||'';
+  const active=chapterNames.findIndex(name=>title.includes(name));
+  chapterLinks.forEach((link,index)=>link.classList.toggle('active',index===active));
+}
+const originalShow=deck.show.bind(deck);
+deck.show=function(n){
+  originalShow(n);
+  updateChapterNav();
+};
+chapterLinks.forEach(link=>link.addEventListener('click',event=>{
+  event.preventDefault();
+  const target=deck.slides.findIndex(slide=>slide.querySelector('.topbar h2')?.textContent.includes(link.dataset.topic));
+  if(target>=0)deck.show(target);
+}));
+updateChapterNav();
 
 /* ===========================================================
    INLINE EDITING — hover hotzone (400ms grace) + E key + Ctrl+S
