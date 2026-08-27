@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="zh"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIE 9709 P1 · 核心知识点速查</title>
+
+<!-- ===== FONTS: Newsreader (display/math) · Hanken Grotesk (body/label) · DM Mono (chrome) · Noto Serif SC (CJK) ===== -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;family=DM+Mono:wght@400;500&amp;family=Noto+Serif+SC:wght@400;500;700&amp;display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================================
+   THEME TOKENS — Cobalt Grid (two-color risograph)
+   Change these to retint the whole deck.
+   =========================================================== */
+:root{
+  --paper:#F0EBDE;         /* cream canvas — the only surface */
+  --paper2:#E6E0CE;        /* slightly deeper cream, sparse use */
+  --ink:#1F2BE0;           /* electric cobalt — the ONLY ink   */
+  --ink-soft:#5560E5;      /* softer cobalt, secondary marks   */
+  --grid:rgba(31,43,224,.10);   /* 10% cobalt — permanent grid  */
+  --faint:rgba(31,43,224,.20);  /* 20% cobalt — row dividers    */
+  --faint2:rgba(31,43,224,.06); /* card wash                    */
+
+  --stage-bg:#d7d1c0;      /* letterbox surround               */
+  --slide-bg:transparent;  /* slides let the grid show through */
+
+  --font-display:"Newsreader","Noto Serif SC",Georgia,serif;
+  --font-body:"Hanken Grotesk","Noto Serif SC",sans-serif;
+  --font-mono:"DM Mono",ui-monospace,monospace;
+
+  --edge:80px;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+/* ===========================================================
+   MANDATORY FIXED-STAGE BASE (viewport-base.css, verbatim)
+   Slides authored at 1920×1080, scaled as one stage.
+   =========================================================== */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg,#000);}
+.chapter-nav{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:1001;display:flex;align-items:center;gap:4px;padding:6px;border:1px solid var(--faint);background:rgba(240,235,222,.92);backdrop-filter:blur(10px);box-shadow:0 4px 16px rgba(31,43,224,.08);}
+.chapter-nav a{display:inline-flex;align-items:center;gap:8px;padding:8px 11px;color:var(--ink);font-family:var(--font-body);font-size:14px;line-height:1;white-space:nowrap;text-decoration:none;transition:background .2s var(--ease),color .2s var(--ease);}
+.chapter-nav a span{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);}
+.chapter-nav a:hover,.chapter-nav a.active{background:var(--ink);color:var(--paper);}
+.chapter-nav a:hover span,.chapter-nav a.active span{color:var(--paper);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--paper);}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;background:var(--slide-bg,#fff);}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
+img,video,canvas,svg{max-width:100%;max-height:100%;}
+.deck-controls{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1000;}
+@media print{
+  html,body{width:1920px;height:auto;overflow:visible;background:#fff;}
+  .deck-viewport{position:static;overflow:visible;background:#fff;}
+  .deck-stage{position:static;width:auto;height:auto;transform:none!important;background:none;}
+  .slide{position:relative;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;width:1920px;height:1080px;break-after:page;page-break-after:always;}
+  .slide:last-child{break-after:auto;page-break-after:auto;}
+  .deck-controls{display:none!important;}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.2s!important;}
+}
+@media (max-width:1100px){
+  .chapter-nav{max-width:calc(100vw - 28px);overflow-x:auto;justify-content:flex-start;scrollbar-width:none;}
+  .chapter-nav::-webkit-scrollbar{display:none;}
+  .chapter-nav a{font-size:13px;padding:8px 9px;}
+}
+@media (max-width:640px){
+  .chapter-nav{top:10px;max-width:calc(100vw - 20px);width:max-content;}
+  .chapter-nav a{font-size:12px;padding:8px 9px;gap:5px;}
+  .chapter-nav a span{font-size:10px;}
+  .chrome .brand.r,.chrome .nav{display:none;}
+  .chrome .brand{top:18px;left:18px;font-size:10px;letter-spacing:.06em;}
+  .chrome .pageno{right:18px;bottom:24px;font-size:11px;}
+  .chrome .hair{left:18px;right:18px;}
+  .chrome .hair.top{top:62px;}
+  .chrome .hair.bot{bottom:16px;}
+}
+
+/* ===========================================================
+   PERMANENT GRAPH-PAPER GRID (never disabled — it is the canvas)
+   =========================================================== */
+.deck-stage::before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(to right,var(--grid) 1px,transparent 1px),
+    linear-gradient(to bottom,var(--grid) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+.slide{background:transparent;}
+.slide-inner{position:absolute;inset:0;z-index:1;}
+
+/* ===========================================================
+   UNIVERSAL CHROME — hairline frame + page no. + nav hint
+   Rendered once as an overlay so every slide is identical.
+   =========================================================== */
+.chrome{position:absolute;inset:0;z-index:6;pointer-events:none;}
+.chrome .hair{position:absolute;left:var(--edge);right:var(--edge);height:0;border-top:1.5px solid var(--ink);}
+.chrome .hair.top{top:34px;}
+.chrome .hair.bot{bottom:30px;}
+.chrome .brand{position:absolute;top:46px;left:var(--edge);font-family:var(--font-mono);font-size:14px;letter-spacing:.1em;color:var(--ink);text-transform:uppercase;}
+.chrome .brand.r{left:auto;right:var(--edge);}
+.chrome .pageno{position:absolute;right:calc(var(--edge) + 120px);bottom:52px;font-family:var(--font-mono);font-size:14px;letter-spacing:.06em;color:var(--ink);}
+.chrome .nav{position:absolute;left:var(--edge);bottom:52px;font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--ink);opacity:.4;}
+
+/* ===========================================================
+   TYPOGRAPHY HELPERS
+   =========================================================== */
+.kicker{font-family:var(--font-body);font-weight:600;font-size:16px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);}
+.zh{letter-spacing:0;}                         /* zero-track Hanzi runs   */
+.lab{font-family:var(--font-body);font-weight:600;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);}
+.tag{font-family:var(--font-mono);font-size:15px;letter-spacing:.05em;color:var(--ink-soft);}
+.note{font-family:var(--font-body);font-weight:400;font-size:17px;line-height:1.55;color:var(--ink);}
+.note .z{letter-spacing:0;}
+
+/* Section topbar (Newsreader headline left, mono lab-tag right, 1.5px rule) */
+.topbar{position:absolute;top:120px;left:var(--edge);right:var(--edge);
+  display:flex;align-items:flex-end;justify-content:space-between;
+  padding-bottom:20px;border-bottom:1.5px solid var(--ink);}
+.topbar h2{font-family:var(--font-display);font-weight:400;color:var(--ink);
+  font-size:76px;line-height:.92;letter-spacing:-.01em;}
+.topbar h2 .zh{font-weight:500;font-size:.62em;}
+.topbar .meta{text-align:right;font-family:var(--font-mono);font-size:15px;color:var(--ink);letter-spacing:.06em;line-height:1.7;}
+.topbar .meta .n{font-family:var(--font-display);font-size:34px;font-style:italic;display:block;}
+
+/* Content frame beneath the topbar */
+.frame{position:absolute;left:var(--edge);right:var(--edge);top:250px;bottom:110px;display:flex;align-items:center;}
+
+/* Formula spec card */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 56px;width:100%;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 44px;width:100%;}
+.col{display:flex;flex-direction:column;justify-content:flex-start;}
+.card{padding:20px 0 18px;border-bottom:1px solid var(--faint);}
+.card:last-child{border-bottom:none;}
+.card .head{display:flex;align-items:baseline;gap:12px;margin-bottom:12px;}
+.card .head .en{font-family:var(--font-body);font-weight:700;font-size:19px;letter-spacing:.02em;color:var(--ink);}
+.card .head .cn{font-family:var(--font-body);font-weight:400;font-size:16px;letter-spacing:0;color:var(--ink-soft);}
+.card .head .num{font-family:var(--font-mono);font-size:14px;color:var(--ink-soft);margin-right:2px;}
+.card .body{font-family:var(--font-body);font-weight:400;font-size:16.5px;line-height:1.5;color:var(--ink);}
+.card .body .z{letter-spacing:0;}
+
+/* ===========================================================
+   MATH RENDERING — pure CSS, zero dependency
+   =========================================================== */
+.mf{font-family:var(--font-display);font-style:italic;color:var(--ink);
+  font-size:30px;line-height:1.2;letter-spacing:0;display:inline-flex;align-items:center;flex-wrap:wrap;gap:.05em;}
+.mf.sm{font-size:24px;}
+.mf.lg{font-size:36px;}
+.mf b{font-weight:500;font-style:normal;}
+.mf .op{font-style:normal;padding:0 .12em;}     /* operators = upright */
+sup{font-size:.62em;vertical-align:.5em;font-style:italic;}
+sub{font-size:.62em;vertical-align:-.25em;font-style:italic;}
+/* stacked fraction */
+.fr{display:inline-flex;flex-direction:column;text-align:center;vertical-align:middle;margin:0 .18em;font-style:italic;}
+.fr>span{padding:0 .32em;line-height:1.05;}
+.fr>span:first-child{border-bottom:1.5px solid var(--ink);padding-bottom:.06em;}
+.fr>span:last-child{padding-top:.06em;}
+/* square root */
+.rt{border-top:1.5px solid var(--ink);padding:2px 4px 0;margin-left:-1px;}
+.radic{font-style:normal;}
+/* big integral / sigma glyph */
+.big{font-family:var(--font-display);font-style:normal;font-size:1.5em;line-height:0;vertical-align:-.15em;padding:0 .05em;}
+.ibound{display:inline-flex;flex-direction:column;font-size:.5em;line-height:1;font-style:italic;vertical-align:middle;margin-right:.15em;}
+.ibound span:first-child{margin-bottom:.9em;}
+
+/* pill divider tag inside a card body */
+.iff{font-family:var(--font-mono);font-style:normal;padding:0 .35em;color:var(--ink-soft);}
+
+/* ===========================================================
+   COVER
+   =========================================================== */
+.cover .kick{position:absolute;top:250px;left:var(--edge);}
+.cover h1{position:absolute;top:300px;left:calc(var(--edge) - 6px);
+  font-family:var(--font-display);font-weight:400;color:var(--ink);
+  font-size:250px;line-height:.84;letter-spacing:-.02em;}
+.cover h1 i{font-style:italic;color:var(--ink-soft);}
+.cover .sub{position:absolute;top:760px;left:var(--edge);max-width:1000px;
+  font-family:var(--font-body);font-weight:400;font-size:30px;line-height:1.5;color:var(--ink);letter-spacing:0;}
+.cover .idx{position:absolute;top:300px;right:calc(var(--edge) + 160px);width:400px;}
+.cover .idx h4{font-family:var(--font-mono);font-size:15px;letter-spacing:.16em;color:var(--ink);margin-bottom:14px;text-transform:uppercase;}
+.cover .idx div{display:flex;justify-content:space-between;padding:12px 0;border-top:1px solid var(--faint);
+  font-family:var(--font-body);font-size:19px;color:var(--ink);}
+.cover .idx div .z{letter-spacing:0;}
+.cover .idx div span:last-child{font-family:var(--font-mono);color:var(--ink-soft);}
+  .cover .sign{position:absolute;bottom:110px;left:var(--edge);font-family:var(--font-mono);font-size:16px;letter-spacing:.08em;color:var(--ink);}
+
+/* pixel-glitch column (inline SVG scaled) */
+.glitch{position:absolute;z-index:3;pointer-events:none;}
+
+/* QR-block patch */
+.qr{position:absolute;z-index:4;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);
+  gap:2px;background:var(--paper);padding:5px;box-shadow:0 0 0 1.5px var(--paper);width:82px;height:82px;}
+.qr i{background:transparent;}
+.qr i.on{background:var(--ink);}
+
+/* ===========================================================
+   SECTION DIVIDER (chapter)
+   =========================================================== */
+.chapter .num{position:absolute;top:250px;left:var(--edge);font-family:var(--font-display);font-style:italic;
+  font-size:200px;color:var(--faint);line-height:.9;}
+.chapter .kick{position:absolute;top:520px;left:var(--edge);}
+.chapter h2{position:absolute;top:560px;left:calc(var(--edge) - 4px);font-family:var(--font-display);font-weight:400;
+  color:var(--ink);font-size:120px;line-height:.95;letter-spacing:-.01em;}
+.chapter h2 .zh{font-weight:500;font-size:.5em;display:block;margin-top:8px;letter-spacing:0;}
+
+/* ===========================================================
+   CLOSING / colophon
+   =========================================================== */
+.closing{text-align:right;}
+.closing .kick{position:absolute;top:300px;right:var(--edge);}
+.closing h2{position:absolute;top:360px;right:var(--edge);font-family:var(--font-display);font-weight:400;
+  color:var(--ink);font-size:150px;line-height:.94;letter-spacing:-.01em;}
+.closing h2 i{font-style:italic;color:var(--ink-soft);}
+.closing .foot{position:absolute;bottom:120px;left:var(--edge);right:var(--edge);
+  display:grid;grid-template-columns:repeat(3,1fr);gap:40px;padding-top:20px;border-top:1.5px solid var(--ink);}
+.closing .foot div{font-family:var(--font-body);font-size:16px;line-height:1.5;color:var(--ink);letter-spacing:0;}
+.closing .foot .lab{margin-bottom:6px;display:block;}
+
+/* ===========================================================
+   REVEAL ANIMATION
+   =========================================================== */
+.reveal{opacity:0;transform:translateY(26px);
+  transition:opacity .7s var(--ease),transform .7s var(--ease);}
+.slide.visible .reveal{opacity:1;transform:none;}
+.slide.visible .d1{transition-delay:.05s}
+.slide.visible .d2{transition-delay:.15s}
+.slide.visible .d3{transition-delay:.25s}
+.slide.visible .d4{transition-delay:.35s}
+.slide.visible .d5{transition-delay:.45s}
+.slide.visible .d6{transition-delay:.55s}
+
+/* ===========================================================
+   INLINE EDIT TOGGLE
+   =========================================================== */
+.edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
+.edit-toggle{position:fixed;top:16px;left:16px;z-index:10001;opacity:0;pointer-events:none;transition:opacity .3s ease;
+  background:var(--ink);color:var(--paper);border:none;border-radius:0;padding:8px 12px;font-family:var(--font-mono);font-size:13px;cursor:pointer;}
+.edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto;}
+.edit-toggle.active{background:var(--ink-soft);}
+[contenteditable="true"]{outline:1.5px dashed var(--ink-soft);outline-offset:3px;cursor:text;}
+</style>
+</head>
+<body>
+<nav class="chapter-nav" id="chapterNav" aria-label="章节导航">
+  <a href="#quadratics" data-topic="Quadratics"><span>01</span>Quadratics</a>
+  <a href="#function" data-topic="Function"><span>02</span>Function</a>
+  <a href="#binomial" data-topic="Binomial Expansion"><span>03</span>Binomial Expansion</a>
+  <a href="#series" data-topic="Series"><span>04</span>Series</a>
+  <a href="#coordinate" data-topic="Coordinate Geometry"><span>05</span>Coordinate Geometry</a>
+  <a href="#circular" data-topic="Circular Measure"><span>06</span>Circular Measure</a>
+  <a href="#trigonometry" data-topic="Trigonometry"><span>07</span>Trigonometry</a>
+  <a href="#differentiation" data-topic="Differentiation"><span>08</span>Differentiation</a>
+  <a href="#integration" data-topic="Integration"><span>09</span>Integration</a>
+</nav>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage" style="transform: translate(9.33333px, 0px) scale(0.919444);">
+
+  <!-- ========================= 01 · COVER ========================= -->
+  
+
+  <!-- ========================= 02 · DIFFERENTIATION — first principle + rules ========================= -->
+  
+
+  <!-- ========================= 03 · DIFFERENTIATION — applications ========================= -->
+  
+
+  <!-- ========================= 04 · INTEGRATION — indefinite/definite + area ========================= -->
+  
+
+  <!-- ========================= 05 · INTEGRATION — volume + improper ========================= -->
+  
+
+  <!-- ========================= 06 · COORDINATE GEOMETRY — points & lines ========================= -->
+  
+
+  <!-- ========================= 07 · COORDINATE GEOMETRY — circle ========================= -->
+  
+
+  <!-- ========================= 08 · CIRCULAR MEASURE ========================= -->
+  
+
+  <!-- ========================= 09 · TRIGONOMETRY — identities & equations ========================= -->
+  
+
+  <!-- ========================= 10 · TRIGONOMETRY — graphs & transformation ========================= -->
+  
+
+  <!-- ========================= 11 · QUADRATICS ========================= -->
+  
+
+  <!-- ========================= 12 · FUNCTION — composite & inverse ========================= -->
+  
+
+  <!-- ========================= 13 · FUNCTION — transformation ========================= -->
+  
+
+  <!-- ========================= 14 · BINOMIAL EXPANSION ========================= -->
+  
+
+  <!-- ========================= 15 · SERIES — AP & GP ========================= -->
+  
+
+  <!-- ========================= 16 · CLOSING ========================= -->
+  
+
+  <!-- ===== UNIVERSAL CHROME OVERLAY (same on every slide) ===== -->
+  <div class="chrome">
+    <div class="hair top"></div>
+    <div class="hair bot"></div>
+    <div class="brand">CIE 9709 / PAPER 1</div>
+    <div class="brand r">PURE MATHEMATICS 1</div>
+    <div class="pageno" id="pageNo">16 / 16</div>
+    <div class="nav">← → · SPACE</div>
+  </div>
+
+<section class="slide cover">
+    <div class="slide-inner">
+      <div class="kicker kick reveal d1" contenteditable="true">A-Level · CIE 9709 · Paper 1</div>
+      <h1 class="reveal d2" contenteditable="true">Pure<br><i>Math 1</i></h1>
+      <p class="sub reveal d4" contenteditable="true"><span class="z">从 first principle 到 binomial series —— Paper 1 全部核心公式、成立条件与解题套路。英文术语，中文注解，一册速查。</span></p>
+      <div class="idx reveal d3">
+        <h4>Contents · <span class="z" style="letter-spacing:0">目录</span></h4>
+        <div><span contenteditable="true">Quadratics</span><span contenteditable="true">01</span></div>
+        <div><span contenteditable="true">Function</span><span contenteditable="true">02</span></div>
+        <div><span contenteditable="true">Binomial Expansion</span><span contenteditable="true">03</span></div>
+        <div><span contenteditable="true">Series</span><span contenteditable="true">04</span></div>
+        <div><span contenteditable="true">Coordinate Geometry</span><span contenteditable="true">05</span></div>
+        <div><span contenteditable="true">Circular Measure</span><span contenteditable="true">06</span></div>
+        <div><span contenteditable="true">Differentiation</span><span contenteditable="true">07</span></div>
+        <div><span contenteditable="true">Integration</span><span contenteditable="true">08</span></div>
+      </div>
+      <div class="sign reveal d5">杨啊杨allesgut</div>
+    </div>
+    <!-- pixel-glitch column, right edge -->
+    <svg class="glitch" style="top:0;right:0;height:1080px;width:360px;" viewBox="0 0 360 1080" preserveAspectRatio="none">
+      <g fill="#1F2BE0" opacity="0.85">
+        <g transform="translate(250,0)"><rect x="0" y="0" width="4" height="1080"></rect><rect x="16" y="0" width="4" height="1080"></rect><rect x="32" y="0" width="4" height="1080"></rect><rect x="48" y="0" width="4" height="1080"></rect></g>
+        <g transform="translate(190,140)"><rect x="0" y="0" width="4" height="800"></rect><rect x="16" y="0" width="4" height="800"></rect><rect x="32" y="0" width="4" height="800"></rect></g>
+        <g transform="translate(310,60)" opacity="0.5"><rect x="0" y="0" width="4" height="960"></rect><rect x="16" y="0" width="4" height="960"></rect></g>
+      </g>
+    </svg>
+    <div class="qr" style="top:250px;right:80px;">
+      <i class="on"></i><i></i><i class="on"></i><i class="on"></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i>
+      <i></i><i class="on"></i><i></i><i class="on"></i><i class="on"></i><i></i><i></i><i class="on"></i>
+      <i class="on"></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i class="on"></i><i></i>
+      <i class="on"></i><i class="on"></i><i></i><i class="on"></i><i class="on"></i><i></i><i class="on"></i><i></i>
+      <i></i><i class="on"></i><i class="on"></i><i></i><i class="on"></i><i class="on"></i><i></i><i class="on"></i>
+      <i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i class="on"></i><i></i>
+      <i></i><i class="on"></i><i class="on"></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i>
+      <i class="on"></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i class="on"></i><i></i>
+    </div>
+  </section><section class="slide">
+    <div class="slide-inner">
+      <div class="topbar reveal d1">
+        <h2 contenteditable="true">Quadratics <span class="zh">二次函数</span></h2>
+        <div class="meta"><span class="n">06</span>DISCRIMINANT</div>
+      </div>
+      <div class="frame">
+        <div class="grid2">
+          <div class="col">
+            <div class="card reveal d2">
+              <div class="head"><span class="en" contenteditable="true">Solving</span><span class="cn" contenteditable="true">解二次方程</span></div>
+              <div class="body" contenteditable="true"><span class="note" contenteditable="true">
+                factorising · completing square · formula<br>
+                <span class="z">未知数间有平方关系时，用换元法（substitution）化成二次。</span>
+              </span></div>
+            </div>
+            <div class="card reveal d3">
+              <div class="head"><span class="en" contenteditable="true">Inequalities</span><span class="cn" contenteditable="true">二次不等式</span></div>
+              <div class="body" contenteditable="true"><span class="note" contenteditable="true"><span class="z">locating roots + 画图，判断解在两根之间 or 两根之外。</span></span></div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card reveal d4">
+              <div class="head"><span class="en" contenteditable="true">Discriminant</span><span class="cn" contenteditable="true">判别式 Δ = b² − 4ac</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm">Δ&gt;0 <span class="iff">⇔</span> <span class="op">2 distinct roots</span> <span class="iff">⇔</span> <span class="op">2 intersections</span></span><br>
+                <span class="mf sm" style="margin-top:6px">Δ<span class="op">=</span>0 <span class="iff">⇔</span> <span class="op">1 root</span> <span class="iff">⇔</span> <span class="op">tangent / touch</span></span><br>
+                <span class="mf sm" style="margin-top:6px">Δ&lt;0 <span class="iff">⇔</span> <span class="op">no real root</span> <span class="iff">⇔</span> <span class="op">no intersection</span></span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">交点个数 ⇔ 方程解的个数。</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><section class="slide">
+    <div class="slide-inner">
+      <div class="topbar reveal d1">
+        <h2 contenteditable="true">Function <span class="zh">复合与反函数</span></h2>
+        <div class="meta"><span class="n">06</span>COMPOSITE · INVERSE</div>
+      </div>
+      <div class="frame">
+        <div class="grid2">
+          <div class="col">
+            <div class="card reveal d2">
+              <div class="head"><span class="en" contenteditable="true">Composite fg(x)</span><span class="cn" contenteditable="true">复合函数</span></div>
+              <div class="body" contenteditable="true"><span class="note" contenteditable="true">
+                <span class="z">成立条件：内层的 range ⊆ 外层的 domain</span><br>
+                · <span class="z">domain：取内层函数的 domain</span><br>
+                · <span class="z">range：取新（外层）函数的 range</span>
+              </span></div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card reveal d3">
+              <div class="head"><span class="en" contenteditable="true">Inverse f⁻¹(x)</span><span class="cn" contenteditable="true">反函数</span></div>
+              <div class="body" contenteditable="true"><span class="note" contenteditable="true">
+                <span class="z">成立条件：一一映射 1–1 function（二次函数需限定 domain 不含对称轴）。</span><br>
+                ① <span class="z">令 y=f(x)，写成 x=f(y)</span><br>
+                ② <span class="z">交换变量，解出 x 的取值</span>
+              </span></div>
+            </div>
+            <div class="card reveal d4">
+              <div class="head"><span class="en" contenteditable="true">Symmetry</span><span class="cn" contenteditable="true">对称关系</span></div>
+              <div class="body" contenteditable="true"><span class="note" contenteditable="true"><span class="z">f 与 f⁻¹ 图像关于 y = x 对称；domain 与 range 互换。</span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><section class="slide">
+    <div class="slide-inner">
+      <div class="topbar reveal d1">
+        <h2 contenteditable="true">Function <span class="zh">图像变换</span></h2>
+        <div class="meta"><span class="n">06</span>TRANSFORMATION</div>
+      </div>
+      <div class="frame">
+        <div class="grid3">
+          <div class="col">
+            <div class="card reveal d2">
+              <div class="head"><span class="en" contenteditable="true">Translation</span><span class="cn" contenteditable="true">平移</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm">f(x+a) <span class="iff">→</span> 横移 −a</span><br>
+                <span class="mf sm" style="margin-top:6px">f(x)+a <span class="iff">→</span> 纵移 +a</span>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card reveal d3">
+              <div class="head"><span class="en" contenteditable="true">Stretch</span><span class="cn" contenteditable="true">伸缩</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm">f(ax) <span class="iff">→</span> 横向 ×<span class="fr"><span>1</span><span>a</span></span></span><br>
+                <span class="mf sm" style="margin-top:6px">a f(x) <span class="iff">→</span> 纵向 ×a</span>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card reveal d4">
+              <div class="head"><span class="en" contenteditable="true">Reflection</span><span class="cn" contenteditable="true">反射</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm">f(−x) <span class="iff">→</span> 沿 y 轴</span><br>
+                <span class="mf sm" style="margin-top:6px">−f(x) <span class="iff">→</span> 沿 x 轴</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="note reveal d5" style="position:absolute;bottom:-4px;left:0" contenteditable="true"><span class="z">组合变换看顺序：对 y 与旧则同向（先 ×/÷，后 +/−）；对 x 与旧则反向。</span></div>
+      </div>
+    </div>
+  </section><section class="slide">
+    <div class="slide-inner">
+      <div class="topbar reveal d1">
+        <h2 contenteditable="true">Binomial Expansion <span class="zh">二项式展开</span></h2>
+        <div class="meta"><span class="n">07</span>EXPANSION</div>
+      </div>
+      <div class="frame">
+        <div class="grid2">
+          <div class="col">
+            <div class="card reveal d2">
+              <div class="head"><span class="en" contenteditable="true">Expanding</span><span class="cn" contenteditable="true">展开式</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm">(a+b)<sup>n</sup><span class="op">=</span><sup>n</sup>C<sub>0</sub>a<sup>n</sup>+<sup>n</sup>C<sub>1</sub>a<sup>n−1</sup>b+ ⋯ +<sup>n</sup>C<sub>n</sub>b<sup>n</sup></span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">choose 的数放在 b 的指数上；a、b 的指数和恒为 n。</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card reveal d3">
+              <div class="head"><span class="en" contenteditable="true">Locating a Term</span><span class="cn" contenteditable="true">求特定项</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf"><sup>n</sup>C<sub>r</sub> a<sup>n−r</sup>b<sup>r</sup></span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">注意题目要 ascending 还是 descending。</span></div>
+              </div>
+            </div>
+            <div class="card reveal d4">
+              <div class="head"><span class="en" contenteditable="true">Independent of x</span><span class="cn" contenteditable="true">常数项</span></div>
+              <div class="body" contenteditable="true"><span class="note" contenteditable="true"><span class="z">令 x 的分子与分母指数相同（合并后指数为 0），解出 r。</span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><section class="slide">
+    <div class="slide-inner">
+      <div class="topbar reveal d1">
+        <h2 contenteditable="true">Series <span class="zh">数列 · 等差与等比</span></h2>
+        <div class="meta"><span class="n">07</span>ARITHMETIC · GEOMETRIC</div>
+      </div>
+      <div class="frame">
+        <div class="grid2">
+          <div class="col">
+            <div class="card reveal d2">
+              <div class="head"><span class="en" contenteditable="true">Arithmetic (AP)</span><span class="cn" contenteditable="true">等差数列</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm">d<span class="op">=</span>U<sub>n</sub>−U<sub>n−1</sub></span><br>
+                <span class="mf sm" style="margin-top:6px">U<sub>n</sub><span class="op">=</span>a+(n−1)d</span><br>
+                <span class="mf sm" style="margin-top:6px">S<sub>n</sub><span class="op">=</span><span class="fr"><span>n</span><span>2</span></span>(U<sub>1</sub>+U<sub>n</sub>)<span class="op">=</span><span class="fr"><span>n</span><span>2</span></span>[2a+(n−1)d]</span>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card reveal d3">
+              <div class="head"><span class="en" contenteditable="true">Geometric (GP)</span><span class="cn" contenteditable="true">等比数列</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm">r<span class="op">=</span><span class="fr"><span>U<sub>n+1</sub></span><span>U<sub>n</sub></span></span></span> &nbsp;&nbsp;
+                <span class="mf sm">U<sub>n</sub><span class="op">=</span>a r<sup>n−1</sup></span><br>
+                <span class="mf sm" style="margin-top:6px">S<sub>n</sub><span class="op">=</span><span class="fr"><span>a(1−r<sup>n</sup>)</span><span>1−r</span></span></span>
+              </div>
+            </div>
+            <div class="card reveal d4">
+              <div class="head"><span class="en" contenteditable="true">Sum to Infinity</span><span class="cn" contenteditable="true">无穷和</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm">S<sub>∞</sub><span class="op">=</span><span class="fr"><span>a</span><span>1−r</span></span></span>
+                <div class="note" style="margin-top:6px" contenteditable="true"><span class="z">收敛条件 |r| &lt; 1。</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><section class="slide">
+    <div class="slide-inner">
+      <div class="topbar reveal d1">
+        <h2 contenteditable="true">Coordinate Geometry <span class="zh">点与直线</span></h2>
+        <div class="meta"><span class="n">03</span>POINTS &amp; LINES</div>
+      </div>
+      <div class="frame">
+        <div class="grid3">
+          <div class="col">
+            <div class="card reveal d2">
+              <div class="head"><span class="en" contenteditable="true">Midpoint</span><span class="cn" contenteditable="true">中点</span></div>
+              <div class="body" contenteditable="true"><span class="mf sm">( <span class="fr"><span>x₁+x₂</span><span>2</span></span> , <span class="fr"><span>y₁+y₂</span><span>2</span></span> )</span></div>
+            </div>
+            <div class="card reveal d2">
+              <div class="head"><span class="en" contenteditable="true">Distance</span><span class="cn" contenteditable="true">两点距离</span></div>
+              <div class="body" contenteditable="true"><span class="mf sm"><span class="radic">√</span><span class="rt">(x₂−x₁)<sup>2</sup>+(y₂−y₁)<sup>2</sup></span></span></div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card reveal d3">
+              <div class="head"><span class="en" contenteditable="true">Gradient</span><span class="cn" contenteditable="true">斜率</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm">m<span class="op">=</span><span class="fr"><span>y₂−y₁</span><span>x₂−x₁</span></span></span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">平行 m₁=m₂；垂直 m₁·m₂=−1。</span></div>
+              </div>
+            </div>
+            <div class="card reveal d3">
+              <div class="head"><span class="en" contenteditable="true">Straight Line</span><span class="cn" contenteditable="true">直线方程</span></div>
+              <div class="body" contenteditable="true"><span class="mf sm">y−y<sub>0</sub><span class="op">=</span>m(x−x<sub>0</sub>) <span class="iff">→</span> ax+by+c<span class="op">=</span>0</span></div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card reveal d4">
+              <div class="head"><span class="en" contenteditable="true">Perp. Bisector</span><span class="cn" contenteditable="true">垂直平分线</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm">m₁·m₂<span class="op">=</span>−1</span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">① 斜率取负倒数 ② 过 AB 的 midpoint。</span></div>
+              </div>
+            </div>
+            <div class="card reveal d4">
+              <div class="head"><span class="en" contenteditable="true">Length wrt origin</span><span class="cn" contenteditable="true">形状判断</span></div>
+              <div class="body" contenteditable="true"><span class="note" contenteditable="true"><span class="z">对边相等 / 斜率关系 → 判平行四边形、矩形、菱形。</span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><section class="slide">
+    <div class="slide-inner">
+      <div class="topbar reveal d1">
+        <h2 contenteditable="true">Coordinate Geometry <span class="zh">圆</span></h2>
+        <div class="meta"><span class="n">03</span>CIRCLE &amp; PROPERTIES</div>
+      </div>
+      <div class="frame">
+        <div class="grid2">
+          <div class="col">
+            <div class="card reveal d2">
+              <div class="head"><span class="en" contenteditable="true">Circle Equation</span><span class="cn" contenteditable="true">圆的方程</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm">(x−a)<sup>2</sup>+(y−b)<sup>2</sup><span class="op">=</span>r<sup>2</sup></span>
+                <div class="note" style="margin-top:6px" contenteditable="true"><span class="z">圆心 (a, b)，半径 r。</span></div>
+                <span class="mf sm" style="margin-top:6px">x<sup>2</sup>+y<sup>2</sup>+cx+dy+e<span class="op">=</span>0</span>
+                <div class="note" style="margin-top:6px" contenteditable="true"><span class="z">expand ⇄ completing square 互相转换。</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card reveal d3">
+              <div class="head"><span class="en" contenteditable="true">Key Properties</span><span class="cn" contenteditable="true">圆的性质</span></div>
+              <div class="body" contenteditable="true"><span class="note" contenteditable="true">
+                ① <span class="z">半径 ⊥ 切线（radius ⊥ tangent）</span><br>
+                ② <span class="z">圆心角 = 2 × 圆周角</span> (α<sub>centre</sub>=2θ)<br>
+                ③ <span class="z">半圆上的圆周角 = 90°（直径所对）</span><br>
+                ④ <span class="z">同弧所对圆周角相等</span><br>
+                ⑤ <span class="z">切线长相等；连心线过切点</span>
+              </span></div>
+            </div>
+            <div class="card reveal d4">
+              <div class="head"><span class="en" contenteditable="true">Line &amp; Circle</span><span class="cn" contenteditable="true">直线与圆</span></div>
+              <div class="body" contenteditable="true"><span class="note" contenteditable="true"><span class="z">代入消元 → 用判别式 Δ 判相交 / 相切 / 相离。</span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><section class="slide">
+    <div class="slide-inner">
+      <div class="topbar reveal d1">
+        <h2 contenteditable="true">Circular Measure <span class="zh">弧度与扇形</span></h2>
+        <div class="meta"><span class="n">04</span>SECTOR · TRIANGLE</div>
+      </div>
+      <div class="frame">
+        <div class="grid2">
+          <div class="col">
+            <div class="card reveal d2">
+              <div class="head"><span class="en" contenteditable="true">Sector</span><span class="cn" contenteditable="true">扇形（θ 用弧度）</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm"><span class="op">arc</span> s<span class="op">=</span>r θ</span> &nbsp;&nbsp;
+                <span class="mf sm"><span class="op">area</span><span class="op">=</span><span class="fr"><span>1</span><span>2</span></span>r<sup>2</sup>θ</span><br>
+                <span class="mf sm" style="margin-top:6px"><span class="op">perimeter</span><span class="op">=</span>2r+r θ</span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">先看计算器 &amp; 题目是 radians 还是 degree。</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card reveal d3">
+              <div class="head"><span class="en" contenteditable="true">Triangle Area</span><span class="cn" contenteditable="true">三角形面积</span></div>
+              <div class="body" contenteditable="true"><span class="mf sm"><span class="op">area</span><span class="op">=</span><span class="fr"><span>1</span><span>2</span></span>ab sinC<span class="op">=</span><span class="fr"><span>1</span><span>2</span></span>bh</span></div>
+            </div>
+            <div class="card reveal d4">
+              <div class="head"><span class="en" contenteditable="true">Sine / Cosine Rule</span><span class="cn" contenteditable="true">正弦 · 余弦定理</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm"><span class="fr"><span>a</span><span>sinA</span></span><span class="op">=</span><span class="fr"><span>b</span><span>sinB</span></span></span>
+                <div class="note" style="margin-top:6px" contenteditable="true"><span class="z">非直角三角形；直角优先用 sin/cos/tan。</span></div>
+                <span class="mf sm" style="margin-top:6px">a<sup>2</sup><span class="op">=</span>b<sup>2</sup>+c<sup>2</sup>−2bc cosA</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><section class="slide">
+    <div class="slide-inner">
+      <div class="topbar reveal d1">
+        <h2 contenteditable="true">Trigonometry <span class="zh">恒等式与方程</span></h2>
+        <div class="meta"><span class="n">05</span>IDENTITIES · EQUATIONS</div>
+      </div>
+      <div class="frame">
+        <div class="grid2">
+          <div class="col">
+            <div class="card reveal d2">
+              <div class="head"><span class="en" contenteditable="true">Identities</span><span class="cn" contenteditable="true">基本恒等式</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm">sin<sup>2</sup>θ+cos<sup>2</sup>θ<span class="op">=</span>1</span><br>
+                <span class="mf sm" style="margin-top:4px">tanθ<span class="op">=</span><span class="fr"><span>sinθ</span><span>cosθ</span></span></span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">证明思路：从复杂一方开始（拆开、通分、平方差），往目标凑。</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card reveal d3">
+              <div class="head"><span class="en" contenteditable="true">Solving Equations</span><span class="cn" contenteditable="true">解三角方程</span></div>
+              <div class="body" contenteditable="true"><span class="note" contenteditable="true">
+                <span class="z">留意计算器模式与 θ 的取值范围。周期加减：</span><br>
+                <span class="mf sm" style="margin-top:6px">sin, cos <span class="iff">→</span> ± 360° × n</span><br>
+                <span class="mf sm" style="margin-top:4px">tan <span class="iff">→</span> ± 180° × n</span>
+              </span></div>
+            </div>
+            <div class="card reveal d4">
+              <div class="head"><span class="en" contenteditable="true">Symmetry</span><span class="cn" contenteditable="true">对称找根</span></div>
+              <div class="body" contenteditable="true"><span class="note" contenteditable="true"><span class="z">先求主值，再用 180°−θ、−θ 等对称关系补齐区间内所有解。</span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><section class="slide">
+    <div class="slide-inner">
+      <div class="topbar reveal d1">
+        <h2 contenteditable="true">Trigonometry <span class="zh">图像与变换</span></h2>
+        <div class="meta"><span class="n">05</span>GRAPHS · TRANSFORM</div>
+      </div>
+      <div class="frame">
+        <div class="grid2">
+          <div class="col">
+            <div class="card reveal d2">
+              <div class="head"><span class="en" contenteditable="true">Graphs</span><span class="cn" contenteditable="true">三角图像</span></div>
+              <div class="body" contenteditable="true"><span class="note" contenteditable="true">
+                <span class="z">掌握 y=sin x / cos x / tan x 的：</span><br>
+                · <span class="z">周期与对称性</span><br>
+                · <span class="z">sin / cos 的 range 是 [−1, 1]</span><br>
+                · <span class="z">tan 的渐近线 asymptote</span>
+              </span></div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card reveal d3">
+              <div class="head"><span class="en" contenteditable="true">Transformation</span><span class="cn" contenteditable="true">y = a·sin(bx + c) + d</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf lg">a sin(bx+c)+d</span>
+                <div class="note" style="margin-top:10px" contenteditable="true">
+                  <span class="mf sm">b <span class="iff">→</span> <span class="op">period</span> T<span class="op">=</span><span class="fr"><span>2π</span><span>b</span></span></span><br>
+                  <span class="z" style="margin-top:4px;display:inline-block">a → 振幅 (y</span><sub>max</sub><span class="z">−y</span><sub>min</sub><span class="z">)/2；a、d 共同决定 range；c → 平移特殊点。</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><section class="slide">
+    <div class="slide-inner">
+      <div class="topbar reveal d1">
+        <h2 contenteditable="true">Differentiation <span class="zh">求导</span></h2>
+        <div class="meta"><span class="n">01</span>FIRST PRINCIPLE<br>&amp; RULES</div>
+      </div>
+      <div class="frame">
+        <div class="grid2">
+          <div class="col">
+            <div class="card reveal d2">
+              <div class="head"><span class="en" contenteditable="true">First Principle</span><span class="cn" contenteditable="true">导数定义</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf"><span class="fr"><span>dy</span><span>dx</span></span><span class="op">=</span><span class="op">lim</span><sub>Δx→0</sub><span class="fr"><span>Δy</span><span>Δx</span></span><span class="op">=</span>f <b>′</b>(x)</span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">割线斜率的极限 = 切线斜率 = 该点的瞬时斜率（gradient of tangent）。</span></div>
+              </div>
+            </div>
+            <div class="card reveal d3">
+              <div class="head"><span class="en" contenteditable="true">Power Rule</span><span class="cn" contenteditable="true">幂函数求导</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm">y<span class="op">=</span>x<sup>n</sup> <span class="iff">⇒</span> <span class="fr"><span>dy</span><span>dx</span></span><span class="op">=</span>n x<sup>n−1</sup></span><br>
+                <span class="mf sm" style="margin-top:6px">y<span class="op">=</span>p x<sup>n</sup>±q x<sup>m</sup> <span class="iff">⇒</span> pn x<sup>n−1</sup>±qm x<sup>m−1</sup></span>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card reveal d4">
+              <div class="head"><span class="en" contenteditable="true">Chain Rule</span><span class="cn" contenteditable="true">复合函数 · 链式法则</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf">y<span class="op">=</span>[ f(x) ]<sup>n</sup> <span class="iff">⇒</span> n[ f(x) ]<sup>n−1</sup>·f <b>′</b>(x)</span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">先对外层整体求导，再乘内层导数。</span></div>
+              </div>
+            </div>
+            <div class="card reveal d5">
+              <div class="head"><span class="en" contenteditable="true">Index Laws</span><span class="cn" contenteditable="true">求导前先化成幂</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm">x<sup>m</sup>·x<sup>n</sup><span class="op">=</span>x<sup>m+n</sup></span> &nbsp;&nbsp;
+                <span class="mf sm"><span class="fr"><span>x<sup>m</sup></span><span>x<sup>n</sup></span></span><span class="op">=</span>x<sup>m−n</sup></span><br>
+                <span class="mf sm" style="margin-top:6px">x<sup>m/n</sup><span class="op">=</span><span class="radic">ⁿ√</span><span class="rt">x<sup>m</sup></span></span> &nbsp;&nbsp;
+                <span class="mf sm">x<sup>−m</sup><span class="op">=</span><span class="fr"><span>1</span><span>x<sup>m</sup></span></span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><section class="slide">
+    <div class="slide-inner">
+      <div class="topbar reveal d1">
+        <h2 contenteditable="true">Differentiation <span class="zh">导数应用</span></h2>
+        <div class="meta"><span class="n">01</span>APPLICATIONS</div>
+      </div>
+      <div class="frame">
+        <div class="grid2">
+          <div class="col">
+            <div class="card reveal d2">
+              <div class="head"><span class="num" contenteditable="true">①</span><span class="en" contenteditable="true">Tangent &amp; Normal</span><span class="cn" contenteditable="true">切线 · 法线</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm"><span class="op">tangent:</span> y−y<sub>0</sub><span class="op">=</span>f <b>′</b>(x<sub>0</sub>)(x−x<sub>0</sub>)</span><br>
+                <span class="mf sm" style="margin-top:8px"><span class="op">normal:</span> y−y<sub>0</sub><span class="op">=</span>−<span class="fr"><span>1</span><span>f <b>′</b>(x<sub>0</sub>)</span></span>(x−x<sub>0</sub>)</span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">法线斜率 = 切线斜率的负倒数。</span></div>
+              </div>
+            </div>
+            <div class="card reveal d3">
+              <div class="head"><span class="num" contenteditable="true">②</span><span class="en" contenteditable="true">Increasing / Decreasing</span><span class="cn" contenteditable="true">单调性</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm">f <b>′</b>(x)&gt;0 <span class="iff">→</span> <span class="op">increasing</span></span><br>
+                <span class="mf sm" style="margin-top:4px">f <b>′</b>(x)&lt;0 <span class="iff">→</span> <span class="op">decreasing</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card reveal d4">
+              <div class="head"><span class="num" contenteditable="true">②</span><span class="en" contenteditable="true">Stationary Point</span><span class="cn" contenteditable="true">驻点及其性质</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm">f <b>′</b>(x)<span class="op">=</span>0 <span class="iff">⇒</span> <span class="op">stationary</span></span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">用二阶导判性质（nature）：</span></div>
+                <span class="mf sm">f <b>″</b>(x)&gt;0 <span class="iff">⇒</span> <span class="op">min</span></span>&nbsp;&nbsp;
+                <span class="mf sm">f <b>″</b>(x)&lt;0 <span class="iff">⇒</span> <span class="op">max</span></span>
+              </div>
+            </div>
+            <div class="card reveal d5">
+              <div class="head"><span class="num" contenteditable="true">③</span><span class="en" contenteditable="true">Rate of Change</span><span class="cn" contenteditable="true">变化率 · 相关变化率</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm"><span class="op">rate of</span> □ <span class="op">wrt</span> △ <span class="op">=</span> <span class="fr"><span>d□</span><span>d△</span></span></span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">connected rate：借助中间量用链式串起来，</span></div>
+                <span class="mf sm"><span class="fr"><span>dy</span><span>dt</span></span><span class="op">=</span><span class="fr"><span>dy</span><span>dx</span></span>·<span class="fr"><span>dx</span><span>dt</span></span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><section class="slide">
+    <div class="slide-inner">
+      <div class="topbar reveal d1">
+        <h2 contenteditable="true">Integration <span class="zh">积分</span></h2>
+        <div class="meta"><span class="n">02</span>INDEFINITE · DEFINITE<br>&amp; AREA</div>
+      </div>
+      <div class="frame">
+        <div class="grid2">
+          <div class="col">
+            <div class="card reveal d2">
+              <div class="head"><span class="en" contenteditable="true">Indefinite Integral</span><span class="cn" contenteditable="true">不定积分</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm"><span class="big">∫</span>k x<sup>n</sup> dx<span class="op">=</span><span class="fr"><span>k</span><span>n+1</span></span>x<sup>n+1</sup>+c</span><br>
+                <span class="mf sm" style="margin-top:8px"><span class="big">∫</span>(ax+b)<sup>n</sup> dx<span class="op">=</span><span class="fr"><span>1</span><span>a</span></span>·<span class="fr"><span>1</span><span>n+1</span></span>(ax+b)<sup>n+1</sup>+c</span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">别漏常数 c；n ≠ −1。</span></div>
+              </div>
+            </div>
+            <div class="card reveal d3">
+              <div class="head"><span class="en" contenteditable="true">Definite Integral</span><span class="cn" contenteditable="true">定积分</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm"><span class="big">∫</span><span class="ibound"><span>b</span><span>a</span></span>f(x) dx<span class="op">=</span>[ F(x) ]<span class="ibound"><span>b</span><span>a</span></span><span class="op">=</span>F(b)−F(a)</span>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card reveal d4">
+              <div class="head"><span class="en" contenteditable="true">Area — two curves</span><span class="cn" contenteditable="true">两曲线围成</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm"><span class="op">A</span><span class="op">=</span><span class="big">∫</span><span class="ibound"><span>B</span><span>A</span></span>(y<sub>上</sub>−y<sub>下</sub>) dx</span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">先联立求交点 A、B 定上下限，上曲线减下曲线。</span></div>
+              </div>
+            </div>
+            <div class="card reveal d5">
+              <div class="head"><span class="en" contenteditable="true">Area — with a line</span><span class="cn" contenteditable="true">曲线 + 直线</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm"><span class="op">A</span><span class="op">=</span>S<sub>▭/▽</sub> ± <span class="big">∫</span> y dx</span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">拆成规则图形（矩形/三角形）与积分的加减。</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><section class="slide">
+    <div class="slide-inner">
+      <div class="topbar reveal d1">
+        <h2 contenteditable="true">Integration <span class="zh">旋转体积 · 广义积分</span></h2>
+        <div class="meta"><span class="n">02</span>VOLUME OF REVOLUTION</div>
+      </div>
+      <div class="frame">
+        <div class="grid2">
+          <div class="col">
+            <div class="card reveal d2">
+              <div class="head"><span class="en" contenteditable="true">About x-axis</span><span class="cn" contenteditable="true">绕 x 轴</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm"><span class="op">V</span><span class="op">=</span>π<span class="big">∫</span><span class="ibound"><span>b</span><span>a</span></span>y<sup>2</sup> dx</span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">两曲线之间：</span></div>
+                <span class="mf sm">π<span class="big">∫</span><span class="ibound"><span>b</span><span>a</span></span>(y<sub>上</sub><sup>2</sup>−y<sub>下</sub><sup>2</sup>) dx</span>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card reveal d3">
+              <div class="head"><span class="en" contenteditable="true">About y-axis</span><span class="cn" contenteditable="true">绕 y 轴</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm"><span class="op">V</span><span class="op">=</span>π<span class="big">∫</span><span class="ibound"><span>b</span><span>a</span></span>x<sup>2</sup> dy</span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">先把 y=f(x) 反解成 x²，积分变量换成 dy。</span></div>
+              </div>
+            </div>
+            <div class="card reveal d4">
+              <div class="head"><span class="en" contenteditable="true">Improper Integral</span><span class="cn" contenteditable="true">广义积分</span></div>
+              <div class="body" contenteditable="true">
+                <span class="mf sm"><span class="big">∫</span><span class="ibound"><span>∞</span><span>a</span></span>f(x) dx<span class="op">=</span><span class="op">lim</span><sub>t→∞</sub><span class="big">∫</span><span class="ibound"><span>t</span><span>a</span></span>f(x) dx</span>
+                <div class="note" style="margin-top:8px" contenteditable="true"><span class="z">上/下限有一个取到 ∞ 时，用极限处理；极限存在才收敛。</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><section class="slide closing active visible">
+    <div class="slide-inner">
+      <div class="kicker kick reveal d1" contenteditable="true">CIE 9709 · Paper 1&nbsp;</div>
+      <h2 class="reveal d2" contenteditable="true">may the<br><i>A*</i> be<br>with u</h2>
+      <div class="foot reveal d4">
+        <div contenteditable="true"><span class="lab"><br></span></div>
+        <div contenteditable="true"><span class="lab"><br></span></div>
+        <div contenteditable="true"><span class="lab"><br></span></div>
+      </div>
+    </div>
+    <svg class="glitch" style="top:0;left:0;height:1080px;width:300px;" viewBox="0 0 300 1080" preserveAspectRatio="none">
+      <g fill="#1F2BE0" opacity="0.85">
+        <g transform="translate(40,0)"><rect x="0" y="0" width="4" height="1080"></rect><rect x="16" y="0" width="4" height="1080"></rect><rect x="32" y="0" width="4" height="1080"></rect></g>
+        <g transform="translate(90,120)" opacity="0.5"><rect x="0" y="0" width="4" height="840"></rect><rect x="16" y="0" width="4" height="840"></rect></g>
+      </g>
+    </svg>
+  </section></main>
+</div>
+
+<!-- Inline edit affordance -->
+<div class="edit-hotzone"></div>
+<button class="edit-toggle active" id="editToggle" title="编辑模式 (E)">💾 DONE</button>
+
+<script>
+/* ===========================================================
+   SLIDE CONTROLLER — fixed-stage scaling + navigation
+   =========================================================== */
+class Deck{
+  constructor(){
+    this.stage=document.getElementById('deckStage');
+    this.reorderSlides();
+    this.slides=[...document.querySelectorAll('.slide')];
+    this.pageNo=document.getElementById('pageNo');
+    this.i=0;
+    this.scale();addEventListener('resize',()=>this.scale());
+    this.keys();this.touch();this.wheel();
+    this.show(0);
+  }
+  reorderSlides(){
+    const cover=this.stage.querySelector('.slide.cover');
+    const closing=this.stage.querySelector('.slide.closing');
+    const order=['Quadratics','Function','Binomial Expansion','Series','Coordinate Geometry','Circular Measure','Trigonometry','Differentiation','Integration'];
+    const groups=Object.fromEntries(order.map(topic=>[topic,[]]));
+    [...this.stage.querySelectorAll('.slide:not(.cover):not(.closing)')].forEach(slide=>{
+      const title=slide.querySelector('.topbar h2')?.textContent||'';
+      const topic=order.find(item=>title.includes(item));
+      if(topic)groups[topic].push(slide);
+    });
+    [cover,...order.flatMap(topic=>groups[topic]),closing].forEach(slide=>this.stage.appendChild(slide));
+  }
+  scale(){
+    const k=Math.min(innerWidth/1920,innerHeight/1080);
+    const x=(innerWidth-1920*k)/2, y=(innerHeight-1080*k)/2;
+    this.stage.style.transform=`translate(${x}px,${y}px) scale(${k})`;
+  }
+  show(n){
+    this.i=Math.max(0,Math.min(n,this.slides.length-1));
+    this.slides.forEach((s,j)=>{
+      s.classList.toggle('active',j===this.i);
+      s.classList.toggle('visible',j===this.i);
+    });
+    const t=String(this.i+1).padStart(2,'0');
+    this.pageNo.textContent=`${t} / ${String(this.slides.length).padStart(2,'0')}`;
+  }
+  next(){this.show(this.i+1);}
+  prev(){this.show(this.i-1);}
+  keys(){
+    addEventListener('keydown',e=>{
+      if(e.target.getAttribute&&e.target.getAttribute('contenteditable')==='true')return;
+      if(['ArrowRight','ArrowDown',' ','PageDown'].includes(e.key)){e.preventDefault();this.next();}
+      else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();this.prev();}
+      else if(e.key==='Home'){this.show(0);}
+      else if(e.key==='End'){this.show(this.slides.length-1);}
+    });
+  }
+  touch(){
+    let x0=null;
+    addEventListener('touchstart',e=>x0=e.touches[0].clientX,{passive:true});
+    addEventListener('touchend',e=>{
+      if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;
+      if(Math.abs(dx)>50){dx<0?this.next():this.prev();}x0=null;
+    },{passive:true});
+  }
+  wheel(){
+    let lock=false;
+    addEventListener('wheel',e=>{
+      if(lock)return;if(Math.abs(e.deltaY)<20)return;
+      lock=true;e.deltaY>0?this.next():this.prev();
+      setTimeout(()=>lock=false,600);
+    },{passive:true});
+  }
+}
+const deck=new Deck();
+
+const chapterLinks=[...document.querySelectorAll('.chapter-nav a')];
+const chapterNames=chapterLinks.map(link=>link.dataset.topic);
+function updateChapterNav(){
+  const slide=deck.slides[deck.i];
+  const title=slide?.querySelector('.topbar h2')?.textContent||'';
+  const active=chapterNames.findIndex(name=>title.includes(name));
+  chapterLinks.forEach((link,index)=>link.classList.toggle('active',index===active));
+}
+const originalShow=deck.show.bind(deck);
+deck.show=function(n){
+  originalShow(n);
+  updateChapterNav();
+};
+chapterLinks.forEach(link=>link.addEventListener('click',event=>{
+  event.preventDefault();
+  const target=deck.slides.findIndex(slide=>slide.querySelector('.topbar h2')?.textContent.includes(link.dataset.topic));
+  if(target>=0)deck.show(target);
+}));
+updateChapterNav();
+
+/* ===========================================================
+   INLINE EDITING — hover hotzone (400ms grace) + E key + Ctrl+S
+   =========================================================== */
+const editor={
+  isActive:false,
+  toggle(){
+    this.isActive=!this.isActive;
+    const btn=document.getElementById('editToggle');
+    btn.classList.toggle('active',this.isActive);
+    btn.textContent=this.isActive?'💾 DONE':'✏️ EDIT';
+    document.querySelectorAll('.slide h1,.slide h2,.slide .note,.card .body,.card .head span,.kicker,.sub,.foot div,.idx div span')
+      .forEach(el=>el.setAttribute('contenteditable',this.isActive));
+    if(this.isActive){document.querySelector('.slide.active [contenteditable]')?.focus();}
+  }
+};
+const hotzone=document.querySelector('.edit-hotzone');
+const editToggle=document.getElementById('editToggle');
+let hideTimeout=null;
+hotzone.addEventListener('mouseenter',()=>{clearTimeout(hideTimeout);editToggle.classList.add('show');});
+hotzone.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!editor.isActive)editToggle.classList.remove('show');},400);});
+editToggle.addEventListener('mouseenter',()=>clearTimeout(hideTimeout));
+editToggle.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!editor.isActive)editToggle.classList.remove('show');},400);});
+editToggle.addEventListener('click',()=>editor.toggle());
+hotzone.addEventListener('click',()=>editor.toggle());
+addEventListener('keydown',e=>{
+  if((e.key==='e'||e.key==='E')&&e.target.getAttribute('contenteditable')!=='true'){editor.toggle();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){
+    e.preventDefault();
+    const html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+    const blob=new Blob([html],{type:'text/html'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='cie9709-p1-cheatsheet.html';a.click();
+  }
+});
+</script>
+
+
+</body></html>
